@@ -73,14 +73,25 @@ The API offers a variety of routes to work with *cohort* and *student* documents
 
 <br>
 
-#### Category Routes
+#### Expense Category Routes
 
 | HTTP verb | URL                               | Request body | Action                                                         |
 | --------- | --------------------------------- | ------------ | -------------------------------------------------------------- |
-| GET       | `/api/categories/:userId`         | (empty)      | Returns all categories for a user                              |
-| POST      | `/api/categories`                 | JSON         | Creates a new category                                         |
-| PUT       | `/api/categories/:categoryId`     | JSON         | Updates the specified category by id                           |
-| DELETE    | `/api/categories/:categoryId`     | (empty)      | Deletes the specified category by id                           |
+| GET       | `/api/expense-categories/:userId`         | (empty)      | Returns all categories for a user                              |
+| POST      | `/api/expense-categories`                 | JSON         | Creates a new category                                         |
+| PUT       | `/api/expense-categories/:categoryId`     | JSON         | Updates the specified category by id                           |
+| DELETE    | `/api/expense-categories/:categoryId`     | (empty)      | Deletes the specified category by id                           |
+
+<br>
+
+#### Profit Category Routes
+
+| HTTP verb | URL                               | Request body | Action                                                         |
+| --------- | --------------------------------- | ------------ | -------------------------------------------------------------- |
+| GET       | `/api/profit-categories/:userId`         | (empty)      | Returns all categories for a user                              |
+| POST      | `/api/profit-categories`                 | JSON         | Creates a new category                                         |
+| PUT       | `/api/profit-categories/:categoryId`     | JSON         | Updates the specified category by id                           |
+| DELETE    | `/api/profit-categories/:categoryId`     | (empty)      | Deletes the specified category by id                           |
 
 <hr>
 <br>
@@ -120,7 +131,7 @@ The Models section holds information about the data models for your database. It
 |--------------|--------------------------------------|---------------------------------------------- |
 | `user`       | *`ObjectId`*                         | Reference to the user. Required.              |
 | `amount`     | *`Number`*                           | Profit  amount. Required.                     |
-| `category  ` | *`ObjectId`*                         | TO IMPLEMENT                                  |
+| `category  ` | *`ObjectId`*                         | Reference to the profit category. Required.   |
 | `description`| *`String`*                           | Expense description. Optional.                |
 | `date`       | *`Date`*                             | Date of the profit. Default: Current date.    |
 | `account`    | *`ObjectId`*                         | Reference to the account. Optional.           |
@@ -141,14 +152,23 @@ The Models section holds information about the data models for your database. It
 
 <br>
 
-#### Category Model
+#### Expense Category Model
 
-| Field        | Data Type                            | Description                                                                       |
-|--------------|--------------------------------------|---------------------------------------------------------------------------------- |
-| `user`       | *`ObjectId`*                         | Reference to the user. Required.                                                  |
-| `name`       | *`String`*                           | Name of the category. Required.                                                   |
-| `type  `     | *`String`*                           | Type of the category. Allowed values: "expense", "profit". Required.              |
-| `icon`       | *`String`*                           | Icon for the category. Optional.                                                  |
+| Field        | Data Type                            | Description                                                                                                               |  
+|--------------|--------------------------------------|-------------------------------------------------------------------------------------------------------------------------- |
+| `user`       | *`ObjectId`*                         | Reference to the user. Required.                                                                                          |
+| `name`       | *`String`*                           | Name of the category. Required.                                                                                           |
+| `type  `     | *`String`*                           | Category name. Allowed values: 'Rent','Mortgage','Food', 'Transport', 'Utilities', 'Entertainment', 'Healthcare', 'Travel', 'Other'  |
+| `icon`       | *`String`*                           | Icon for the category. Optional.                                                                                          |
+
+#### Profit Category Model
+
+| Field        | Data Type                            | Description                                                                         |
+|--------------|--------------------------------------|------------------------------------------------------------------------------------ |
+| `user`       | *`ObjectId`*                         | Reference to the user. Required.                                                    |
+| `name`       | *`String`*                           | Name of the category. Required.                                                     |
+| `type  `     | *`String`*                           | Category name. Allowed values: "Salary", "Investment", "Gift", "Business", "Other"  |
+| `icon`       | *`String`*                           | Icon for the category. Optional.                                                    |
 
 
 <br>
