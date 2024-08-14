@@ -13,7 +13,7 @@ const cookieParser = require("cookie-parser");
 // unless the request if from the same domain, by default express wont accept POST requests
 const cors = require("cors");
 
-const FRONTEND_URL = process.env.ORIGIN || "https://tothebudget.netlify.app/";
+const FRONTEND_URL = process.env.ORIGIN || "http://localhost:5173";
 
 
 // Middleware configuration
@@ -25,9 +25,7 @@ module.exports = (app) => {
   // controls a very specific header to pass headers from the frontend
   app.use(
     cors({
-      origin: 'https://tothebudget.netlify.app', // Replace with your frontend's URL
-      methods: ['GET', 'POST', 'PUT', 'DELETE'], // Specify allowed methods
-      allowedHeaders: ['Content-Type', 'Authorization'], // Specify allowed headers
+      origin: [FRONTEND_URL]
     })
   );
 
