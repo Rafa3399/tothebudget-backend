@@ -25,7 +25,9 @@ module.exports = (app) => {
   // controls a very specific header to pass headers from the frontend
   app.use(
     cors({
-      origin: [FRONTEND_URL]
+      origin: 'https://tothebudget.netlify.app', // Replace with your frontend's URL
+      methods: ['GET', 'POST', 'PUT', 'DELETE'], // Specify allowed methods
+      allowedHeaders: ['Content-Type', 'Authorization'], // Specify allowed headers
     })
   );
 
