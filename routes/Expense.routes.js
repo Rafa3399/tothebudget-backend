@@ -1,4 +1,3 @@
-// routes/Expense.routes.js
 const express = require('express');
 const Expense = require('../models/Expense.model');
 const ExpenseCategory = require('../models/ExpenseCategory.model');
@@ -7,18 +6,42 @@ const { isAuthenticated } = require('../middleware/jwt.middleware');
 
 const router = express.Router();
 
-// GET /api/expenses
-router.get('/expenses', isAuthenticated, async (req, res, next) => {
+// Helper function to update account balances
+async function updateAccountBalance(accountId, amountChange) {
+  if (accountId) {
+    await Account.findByIdAndUpdate(accountId, { $inc: { balance: amountChange } });
+  }
+}
+
+// GET /api/expenses/account/:accountId - Get expenses for a specific account
+router.get('/account/:accountId', isAuthenticated, async (req, res, next) => {
   try {
-    const expenses = await Expense.find({ user: req.payload._id }).populate('category').populate('account');
+    const { accountId } = req.params;
+    const expenses = await Expense.find({ account: accountId, user: req.payload._id })
+      .populate('category')
+      .populate('account');
     res.status(200).json(expenses);
   } catch (error) {
-    next(error);
+    console.error('Error fetching expenses:', error); // Detailed error logging
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 });
 
-// POST /api/expenses
-router.post('/expenses', isAuthenticated, async (req, res, next) => {
+// GET /api/expenses - Get all expenses for the authenticated user
+router.get('/', isAuthenticated, async (req, res, next) => {
+  try {
+    const expenses = await Expense.find({ user: req.payload._id })
+      .populate('category')
+      .populate('account');
+    res.status(200).json(expenses);
+  } catch (error) {
+    console.error('Error fetching all user expenses:', error); // Detailed error logging
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
+
+// POST /api/expenses - Create a new expense
+router.post('/', isAuthenticated, async (req, res, next) => {
   try {
     const { amount, category, description, date, account } = req.body;
 
@@ -43,21 +66,31 @@ router.post('/expenses', isAuthenticated, async (req, res, next) => {
     });
 
     // Update the account balance if an account is specified
-    if (account) {
-      await Account.findByIdAndUpdate(account, { $inc: { balance: -amount } });
-    }
+    await updateAccountBalance(account, -amount);
 
     res.status(201).json(newExpense);
   } catch (error) {
-    next(error);
+    console.error('Error creating expense:', error); // Detailed error logging
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 });
 
-// PUT /api/expenses/:expenseId
-router.put('/expenses/:expenseId', isAuthenticated, async (req, res, next) => {
+// PUT /api/expenses/:expenseId - Update an existing expense
+router.put('/:expenseId', isAuthenticated, async (req, res, next) => {
   try {
     const { expenseId } = req.params;
     const { amount, category, description, date, account } = req.body;
+
+    const existingExpense = await Expense.findById(expenseId);
+    if (!existingExpense) {
+      return res.status(404).json({ message: 'Expense not found' });
+    }
+
+    // Update the balance of the old account (if it existed)
+    await updateAccountBalance(existingExpense.account, existingExpense.amount);
+
+    // Update the balance of the new account (if specified)
+    await updateAccountBalance(account, -amount);
 
     const updatedExpense = await Expense.findByIdAndUpdate(
       expenseId,
@@ -65,23 +98,15 @@ router.put('/expenses/:expenseId', isAuthenticated, async (req, res, next) => {
       { new: true }
     ).populate('category').populate('account');
 
-    if (!updatedExpense) {
-      return res.status(404).json({ message: 'Expense not found' });
-    }
-
-    // Update the account balance if an account is specified
-    if (account) {
-      await Account.findByIdAndUpdate(account, { $inc: { balance: -amount } });
-    }
-
     res.status(200).json(updatedExpense);
   } catch (error) {
-    next(error);
+    console.error('Error updating expense:', error); // Detailed error logging
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 });
 
-// DELETE /api/expenses/:expenseId
-router.delete('/expenses/:expenseId', isAuthenticated, async (req, res, next) => {
+// DELETE /api/expenses/:expenseId - Delete an expense
+router.delete('/:expenseId', isAuthenticated, async (req, res, next) => {
   try {
     const { expenseId } = req.params;
     const expense = await Expense.findByIdAndDelete(expenseId);
@@ -91,13 +116,12 @@ router.delete('/expenses/:expenseId', isAuthenticated, async (req, res, next) =>
     }
 
     // Update the account balance if an account is specified
-    if (expense.account) {
-      await Account.findByIdAndUpdate(expense.account, { $inc: { balance: expense.amount } });
-    }
+    await updateAccountBalance(expense.account, expense.amount);
 
     res.status(200).json({ message: 'Expense deleted successfully' });
   } catch (error) {
-    next(error);
+    console.error('Error deleting expense:', error); // Detailed error logging
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 });
 

@@ -30,8 +30,8 @@ app.use('/api/accounts', accountRoutes);
 app.use('/api/expenses', expenseRoutes);
 app.use('/api/profits', profitRoutes);
 app.use('/api/recurring-expenses', recurringExpenseRoutes);
-app.use('/api', expenseCategoryRoutes);
-app.use('/api', profitCategoryRoutes);
+app.use('/api/expense-categories', expenseCategoryRoutes);
+app.use('/api/profit-categories', profitCategoryRoutes);
 
 // ❗ To handle errors. Routes that don't exist or errors that you handle in specific routes
 require("./error-handling")(app);
