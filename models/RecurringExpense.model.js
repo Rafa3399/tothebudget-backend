@@ -10,7 +10,7 @@ const recurringExpenseSchema = new Schema({
   startDate: { type: Date, required: true },
   endDate: { type: Date },
   frequency: { type: String, enum: ['daily', 'weekly', 'monthly'], required: true }
-});
+})
 
 const RecurringExpense = mongoose.model('RecurringExpense', recurringExpenseSchema);
 module.exports = RecurringExpense;

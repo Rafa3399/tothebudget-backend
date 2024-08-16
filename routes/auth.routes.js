@@ -1,3 +1,4 @@
+// routes/auth.routes.js
 const express = require("express")
 const bcrypt = require("bcryptjs")
 const jwt = require("jsonwebtoken")
@@ -13,17 +14,17 @@ router.post("/signup", async (req, res, next) => {
     const { email, password, name } = req.body
 
     if (email === '' || password === '' || name === '') {
-      return res.status(400).json({ message: "Provide email, name, and password" });
+      return res.status(400).json({ message: "Provide email, name, and password" })
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
     if (!emailRegex.test(email)) {
-      return res.status(400).json({ message: "Provide a valid email address" });
+      return res.status(400).json({ message: "Provide a valid email address" })
     }
 
     const foundUser = await User.findOne({ email })
     if (foundUser) {
-      return res.status(400).json({ message: "User already exists" });
+      return res.status(400).json({ message: "User already exists" })
     }
 
     const salt = await bcrypt.genSalt(saltRounds)
@@ -38,12 +39,12 @@ router.post("/signup", async (req, res, next) => {
   } catch (error) {
     next(error)
   }
-});
+})
 
 // POST /auth/login
 router.post("/login", async (req, res, next) => {
   try {
-    const { email, password } = req.body;
+    const { email, password } = req.body
 
     if (email === '' || password === '') {
       return res.status(400).json({ message: "Provide email and password" })
@@ -61,7 +62,7 @@ router.post("/login", async (req, res, next) => {
       const user = { email, name, _id }
 
       const authToken = jwt.sign(user, process.env.TOKEN_SECRET, { algorithm: 'HS256', expiresIn: "90d" })
-
+      
       res.status(200).json({ authToken })
     } else {
       res.status(400).json({ message: "Unable to authorize the user" })
@@ -69,11 +70,11 @@ router.post("/login", async (req, res, next) => {
   } catch (error) {
     next(error)
   }
-});
+})
 
-// GET /auth/verify - Used to verify the JWT stored on the client is valid
+// GET /auth/verify 
 router.get("/verify", isAuthenticated, (req, res, next) => {
   res.status(200).json(req.payload)
-});
+})
 
 module.exports = router

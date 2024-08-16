@@ -8,5 +8,5 @@ const accountSchema = new Schema({
   balance: { type: Number, default: 0 }
 });
 
-const Account = mongoose.model('Account', accountSchema);
+const Account = mongoose.model('Account', accountSchema)
 module.exports = Account;

@@ -18,20 +18,18 @@ require("./config")(app);
 // 👇 Start handling routes here
 
 const authRoutes = require("./routes/auth.routes.js");
-const accountRoutes = require('./routes/Account.routes.js');
-const expenseRoutes = require('./routes/Expense.routes.js');
-const profitRoutes = require('./routes/Profit.routes.js');
-const recurringExpenseRoutes = require('./routes/RecurringExpense.routes.js');
-const expenseCategoryRoutes = require('./routes/ExpenseCategory.routes.js');
-const profitCategoryRoutes = require('./routes/ProfitCategory.routes.js');
+const accountRoutes = require('./routes/Account.routes.js')
+const expenseRoutes = require('./routes/Expense.routes.js')
+const profitRoutes = require('./routes/Profit.routes.js')
+const recurringExpenseRoutes = require('./routes/RecurringExpense.routes.js')
+
 
 app.use("/auth", authRoutes);
-app.use('/api/accounts', accountRoutes);
-app.use('/api/expenses', expenseRoutes);
-app.use('/api/profits', profitRoutes);
-app.use('/api/recurring-expenses', recurringExpenseRoutes);
-app.use('/api/expense-categories', expenseCategoryRoutes);
-app.use('/api/profit-categories', profitCategoryRoutes);
+app.use('/api/accounts', accountRoutes)
+app.use('/api/expenses', expenseRoutes)
+app.use('/api/profits', profitRoutes)
+app.use('/api/recurring-expenses', recurringExpenseRoutes)
+
 
 // ❗ To handle errors. Routes that don't exist or errors that you handle in specific routes
 require("./error-handling")(app);
