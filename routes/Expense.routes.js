@@ -1,112 +1,100 @@
-// routes/Expense.routes.js
 const express = require('express');
 const Expense = require('../models/Expense.model');
 const Account = require('../models/Account.model');
-const { isAuthenticated } = require('../middleware/jwt.middleware')
+const { isAuthenticated } = require('../middleware/jwt.middleware');
 
 const router = express.Router();
 
-async function updateAccountBalance(accountId, amountChange) {
-  if (accountId) {
-    await Account.findByIdAndUpdate(accountId, { $inc: { balance: amountChange } })
-  }
-}
-
 // GET /api/expenses/account/:accountId
-router.get('/account/:accountId', isAuthenticated, async (req, res, next) => {
+router.get('/account/:accountId', isAuthenticated, async (req, res) => {
   try {
     const { accountId } = req.params;
-    const expenses = await Expense.find({ account: accountId, user: req.payload._id })
+    const expenses = await Expense.find({ account: accountId, user: req.payload._id });
     res.status(200).json(expenses);
   } catch (error) {
-    console.error('Error fetching expenses:', error)
-    res.status(500).json({ message: 'Internal Server Error' })
+    console.error('Error fetching expenses:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
   }
-})
-
-// GET /api/expenses 
-router.get('/', isAuthenticated, async (req, res, next) => {
-  try {
-    const expenses = await Expense.find({ user: req.payload._id })
-    res.status(200).json(expenses)
-  } catch (error) {
-    console.error('Error fetching all user expenses:', error)
-    res.status(500).json({ message: 'Internal Server Error' })
-  }
-})
+});
 
 // POST /api/expenses 
-router.post('/', isAuthenticated, async (req, res, next) => {
+router.post('/', isAuthenticated, async (req, res) => {
   try {
-    const { amount, category, description, date, account } = req.body
+      const { amount, category, description, date, account } = req.body;
 
-    if (!amount || !category.name) {
-      return res.status(400).json({ message: 'Provide amount and category' })
-    }
+      if (!amount || !category.name) {
+          return res.status(400).json({ message: 'Provide amount and category' });
+      }
 
-    const newExpense = await Expense.create({
-      user: req.payload._id,
-      amount,
-      category,
-      description,
-      date,
-      account
-    })
+      const newExpense = new Expense({
+          user: req.payload._id,
+          amount,
+          category,
+          description,
+          date,
+          account,
+      });
 
-    await updateAccountBalance(account, -amount)
+      const savedExpense = await newExpense.save();
 
-    res.status(201).json(newExpense)
+      // Update the account balance
+      await Account.findByIdAndUpdate(account, { $inc: { balance: -amount } });
+
+      res.status(201).json(savedExpense);
   } catch (error) {
-    console.error('Error creating expense:', error)
-    res.status(500).json({ message: 'Internal Server Error' })
+      console.error('Error creating expense:', error);
+      res.status(500).json({ message: 'Internal Server Error' });
   }
-})
+});
 
 // PUT /api/expenses/:expenseId 
-router.put('/:expenseId', isAuthenticated, async (req, res, next) => {
+router.put('/:expenseId', isAuthenticated, async (req, res) => {
   try {
-    const { expenseId } = req.params;
-    const { amount, category, description, date, account } = req.body
+      const { expenseId } = req.params;
+      const { amount, category, description, date, account } = req.body;
 
-    const existingExpense = await Expense.findById(expenseId);
-    if (!existingExpense) {
-      return res.status(404).json({ message: 'Expense not found' })
-    }
+      const existingExpense = await Expense.findById(expenseId);
+      if (!existingExpense) {
+          return res.status(404).json({ message: 'Expense not found' });
+      }
 
-    await updateAccountBalance(existingExpense.account, existingExpense.amount)
+      // Revert the old amount from the account balance
+      await Account.findByIdAndUpdate(existingExpense.account, { $inc: { balance: existingExpense.amount } });
 
-    await updateAccountBalance(account, -amount)
+      const updatedExpense = await Expense.findByIdAndUpdate(
+          expenseId,
+          { amount, category, description, date, account },
+          { new: true }
+      );
 
-    const updatedExpense = await Expense.findByIdAndUpdate(
-      expenseId,
-      { amount, category, description, date, account },
-      { new: true }
-    )
+      // Apply the new amount to the account balance
+      await Account.findByIdAndUpdate(account, { $inc: { balance: -amount } });
 
-    res.status(200).json(updatedExpense)
+      res.status(200).json(updatedExpense);
   } catch (error) {
-    console.error('Error updating expense:', error)
-    res.status(500).json({ message: 'Internal Server Error' })
+      console.error('Error updating expense:', error);
+      res.status(500).json({ message: 'Internal Server Error' });
   }
-})
+});
 
 // DELETE /api/expenses/:expenseId 
-router.delete('/:expenseId', isAuthenticated, async (req, res, next) => {
+router.delete('/:expenseId', isAuthenticated, async (req, res) => {
   try {
-    const { expenseId } = req.params;
-    const expense = await Expense.findByIdAndDelete(expenseId)
+      const { expenseId } = req.params;
+      const expense = await Expense.findByIdAndDelete(expenseId);
 
-    if (!expense) {
-      return res.status(404).json({ message: 'Expense not found' })
-    }
+      if (!expense) {
+          return res.status(404).json({ message: 'Expense not found' });
+      }
 
-    await updateAccountBalance(expense.account, expense.amount)
+      // Restore the deleted amount to the account balance
+      await Account.findByIdAndUpdate(expense.account, { $inc: { balance: expense.amount } });
 
-    res.status(200).json({ message: 'Expense deleted successfully' })
+      res.status(200).json({ message: 'Expense deleted successfully' });
   } catch (error) {
-    console.error('Error deleting expense:', error); // Detailed error logging
-    res.status(500).json({ message: 'Internal Server Error' })
+      console.error('Error deleting expense:', error);
+      res.status(500).json({ message: 'Internal Server Error' });
   }
-})
+});
 
 module.exports = router;
